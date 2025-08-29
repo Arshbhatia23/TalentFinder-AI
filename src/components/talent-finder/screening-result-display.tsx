@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import type { ScreeningResult } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +54,7 @@ const EmptyState = () => (
             </div>
             <h3 className="text-xl font-semibold">AI Analysis Results</h3>
             <p className="text-muted-foreground">
-                Screen a candidate to see the detailed analysis here.
+                Screen a candidate or search existing ones to see the detailed analysis here.
             </p>
         </CardContent>
     </Card>
@@ -66,18 +66,6 @@ export default function ScreeningResultDisplay({ result, isLoading }: ScreeningR
   if (!result) return <EmptyState />;
 
   const { matchScore, strengths, missingSkills, summary } = result;
-
-  const getScoreColor = (score: number) => {
-    if (score >= 75) return 'text-success-content';
-    if (score >= 50) return 'text-warning-content';
-    return 'text-error-content';
-  };
-  
-  const getScoreBgColor = (score: number) => {
-    if (score >= 75) return 'bg-green-500';
-    if (score >= 50) return 'bg-yellow-500';
-    return 'bg-red-500';
-  }
 
   return (
     <Card>

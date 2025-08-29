@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -61,6 +61,7 @@ export default function ScreeningForm({ onScreeningComplete, isLoading, setIsLoa
     resolver: zodResolver(formSchema),
     defaultValues: {
       jobDescription: exampleJD,
+      resumeFile: undefined,
     },
   });
 
