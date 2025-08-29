@@ -4,12 +4,10 @@ import { aiPoweredResumeScreening } from "@/ai/flows/ai-powered-resume-screening
 import type { AiPoweredResumeScreeningInput } from "@/ai/flows/ai-powered-resume-screening";
 import mammoth from 'mammoth';
 
-// Using require for pdf-parse to avoid potential issues with ES module imports in this context.
-const pdf = require('pdf-parse');
-
 async function getResumeText(file: File): Promise<string> {
     const buffer = await file.arrayBuffer();
     if (file.type === 'application/pdf') {
+        const pdf = (await import('pdf-parse')).default;
         const data = await pdf(Buffer.from(buffer));
         return data.text;
     } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {

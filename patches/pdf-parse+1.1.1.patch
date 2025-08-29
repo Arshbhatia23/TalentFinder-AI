@@ -1,0 +1,14 @@
+diff --git a/node_modules/pdf-parse/lib/pdf-parse.js b/node_modules/pdf-parse/lib/pdf-parse.js
+index 23b0965..6334a13 100644
+--- a/node_modules/pdf-parse/lib/pdf-parse.js
++++ b/node_modules/pdf-parse/lib/pdf-parse.js
+@@ -7,9 +7,6 @@
+ 
+ //see https://github.com/mozilla/pdf.js/blob/628e70fbb5dea3b93665d53621f3f33333f813a4/src/shared/util.js#L84
+ const strict = false;
+-if (strict) {
+-	require.resolve('./pdf.js/build/pdf.worker.js');
+-}
+ 
+ function render_page(pageData) {
+     let render_options = {
