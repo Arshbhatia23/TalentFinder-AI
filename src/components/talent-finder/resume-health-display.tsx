@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, Upload, FileText, Sparkles, BrainCircuit, Dot } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   resumeFile: z.instanceof(File, { message: 'Please upload a resume file.' })
@@ -93,7 +94,7 @@ export default function ResumeHealthDisplay({ onHealthCheckComplete, result }: R
                 <FormField
                   control={form.control}
                   name="resumeFile"
-                  render={({ field: { onChange, ...rest } }) => (
+                  render={({ field: { onChange, value, ...rest } }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <FileText className="h-4 w-4" /> Upload Your Resume
