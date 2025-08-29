@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -18,8 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, FileText, Loader2, Upload, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// We will create this action later
-// import { submitResume } from '@/app/actions'; 
+import { submitResume } from '@/app/actions'; 
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -46,27 +44,13 @@ export default function CandidateSubmissionForm() {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
 
-    // When MongoDB is set up, this will call the server action
-    // For now, we'll just simulate a successful submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    setIsLoading(false);
-    toast({
-      title: 'Submission Successful!',
-      description: 'Thank you for submitting your resume. We will be in touch.',
-    });
-    form.reset();
-    setFileName('');
-
-    /*
-    // REAL IMPLEMENTATION
     const formData = new FormData();
     formData.append('name', data.name);
     if (data.resumeFile) {
       formData.append('resumeFile', data.resumeFile);
     }
     
-    // const result = await submitResume(formData);
+    const result = await submitResume(formData);
     setIsLoading(false);
 
     if (result.success) {
@@ -83,7 +67,6 @@ export default function CandidateSubmissionForm() {
         description: result.error || 'An unexpected error occurred.',
       });
     }
-    */
   };
 
   return (
@@ -143,6 +126,7 @@ export default function CandidateSubmissionForm() {
                                 <Upload className="mx-auto h-8 w-8 text-muted-foreground"/>
                                 {fileName ? (
                                     <p className="mt-2 text-sm text-foreground">{fileName}</p>
+
                                 ) : (
                                     <>
                                         <p className="mt-1 text-sm text-muted-foreground">

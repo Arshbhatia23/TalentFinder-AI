@@ -8,6 +8,8 @@ import { resumeHealthCheck } from '@/ai/flows/resume-health-check';
 import type { ResumeHealthCheckInput } from '@/ai/flows/resume-health-check';
 import { searchCandidates } from '@/ai/flows/skill-based-search';
 import type { Candidate } from '@/lib/types';
+import clientPromise from '@/lib/mongodb';
+import { CollectionName } from '@/lib/collections';
 
 async function getResumeText(file: File): Promise<string> {
     const buffer = await file.arrayBuffer();
@@ -84,6 +86,39 @@ export async function searchExistingCandidates(formData: FormData) {
     return { success: true, data: result.rankedCandidates };
   } catch (error) {
     console.error('Error searching candidates:', error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown error occurred';
+    return { success: false, error: errorMessage };
+  }
+}
+
+export async function submitResume(formData: FormData) {
+  try {
+    const name = formData.get('name') as string;
+    const resumeFile = formData.get('resumeFile') as File | null;
+
+    if (!resumeFile || resumeFile.size === 0) {
+      return { success: false, error: 'Resume file is required.' };
+    }
+     if (!name) {
+      return { success: false, error: 'Name is required.' };
+    }
+
+    const resumeText = await getResumeText(resumeFile);
+    
+    const client = await clientPromise;
+    const db = client.db();
+    
+    await db.collection(CollectionName.Resumes).insertOne({
+      name,
+      resumeText,
+      fileName: resumeFile.name,
+      createdAt: new Date(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error submitting resume:', error);
     const errorMessage =
       error instanceof Error ? error.message : 'An unknown error occurred';
     return { success: false, error: errorMessage };
