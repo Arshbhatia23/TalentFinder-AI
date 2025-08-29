@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserSearch, ScanSearch, FileCheck2 } from 'lucide-react';
 import ResumeHealthDisplay from '@/components/talent-finder/resume-health-display';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
