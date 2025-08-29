@@ -35,7 +35,7 @@ export async function screenResume(formData: FormData) {
     }
 
     if (!resumeText) {
-        return { success: false, error: "Resume is missing." };
+        return { success: false, error: "Resume is missing. Please upload a resume." };
     }
 
     const input: AiPoweredResumeScreeningInput = { jobDescription, resumeText };
