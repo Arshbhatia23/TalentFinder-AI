@@ -23,7 +23,8 @@ import type { Candidate } from '@/lib/types';
 
 const formSchema = z.object({
   jobDescription: z.string().min(50, 'Job description must be at least 50 characters.'),
-  resumeFile: z.instanceof(File, { message: 'Please upload a resume file.' }),
+  resumeFile: z.instanceof(File, { message: 'Please upload a resume file.' })
+    .refine(file => file.size > 0, 'Please upload a resume file.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
