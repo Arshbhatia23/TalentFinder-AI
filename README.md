@@ -55,3 +55,11 @@ This helps recruiters both **screen one-to-one** and **search one-to-many**, mak
 * Cuts down resume shortlisting time by **70%**.
 * Enables recruiters to **instantly search** for the right talent across hundreds of resumes.
 * Ensures **data-driven, consistent hiring decisions**.
+
+---
+
+## How to Run
+1. npm i
+2. npm run dev // on 1st terminal
+3. npm run genkit:watch // on 2nd terminal
+4. localhost:9002/
