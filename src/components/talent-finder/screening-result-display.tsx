@@ -4,7 +4,7 @@ import type { ScreeningResult } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ThumbsUp, ThumbsDown, FileSignature, BarChart, BrainCircuit } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, FileSignature, BarChart, BrainCircuit, Dot } from 'lucide-react';
 
 interface ScreeningResultDisplayProps {
   result: ScreeningResult | null;
@@ -123,9 +123,20 @@ export default function ScreeningResultDisplay({ result, isLoading }: ScreeningR
 
         <div>
           <h3 className="text-lg font-semibold mb-3 flex items-center gap-2"><FileSignature className="text-primary"/>AI Summary</h3>
-          <p className="text-sm text-muted-foreground bg-secondary/50 p-4 rounded-md">
-            {summary}
-          </p>
+          <div className="text-sm text-muted-foreground bg-secondary/50 p-4 rounded-md space-y-2">
+            {Array.isArray(summary) ? (
+              <ul className="space-y-2">
+                {summary.map((point, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <Dot className="h-5 w-5 mt-0.5 shrink-0 text-primary" />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>{summary}</p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

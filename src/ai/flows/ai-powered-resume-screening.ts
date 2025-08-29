@@ -20,7 +20,7 @@ const AiPoweredResumeScreeningOutputSchema = z.object({
   matchScore: z.number().describe('A score indicating how well the resume matches the job description (0-100).'),
   missingSkills: z.array(z.string()).describe('A list of skills missing from the resume that are required in the job description.'),
   strengths: z.array(z.string()).describe('A list of strengths highlighted in the resume that align with the job description.'),
-  summary: z.string().describe('A summary of the resume in relation to the job description'),
+  summary: z.array(z.string()).describe('A summary of the resume in relation to the job description, as a list of bullet points.'),
 });
 export type AiPoweredResumeScreeningOutput = z.infer<typeof AiPoweredResumeScreeningOutputSchema>;
 
@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
   output: {schema: AiPoweredResumeScreeningOutputSchema},
   prompt: `You are an AI-powered resume screening tool. Your task is to evaluate a candidate's resume against a given job description.
 
-  Provide a match score (0-100), identify missing skills, list strengths, and summarize the resume in the context of the job description.
+  Provide a match score (0-100), identify missing skills, list strengths, and provide a summary of the resume in the context of the job description. The summary should be a list of bullet points.
 
   Resume:
   {{resumeText}}
