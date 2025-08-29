@@ -12,6 +12,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import type { Candidate } from '@/lib/types';
+import { aiPoweredResumeScreening } from './ai-powered-resume-screening';
 
 // We can't pass complex objects with methods into Genkit schemas,
 // so we define a simpler version of the Candidate type for the schema.
@@ -34,6 +35,13 @@ const SearchCandidatesInputSchema = z.object({
     .describe('An array of candidate objects to be re-ranked.'),
 });
 export type SearchCandidatesInput = z.infer<typeof SearchCandidatesInputSchema>;
+
+const AiPoweredResumeScreeningOutputSchema = z.object({
+  matchScore: z.number().describe('A score indicating how well the resume matches the job description (0-100).'),
+  missingSkills: z.array(z.string()).describe('A list of skills missing from the resume that are required in the job description.'),
+  strengths: z.array(z.string()).describe('A list of strengths highlighted in the resume that align with the job description.'),
+  summary: z.array(z.string()).describe('A summary of the resume in relation to the job description, as a list of bullet points.'),
+});
 
 const SearchCandidatesOutputSchema = z.object({
   rankedCandidates: z
@@ -60,35 +68,16 @@ const searchCandidatesFlow = ai.defineFlow(
     // This flow will re-evaluate each candidate against the new job description.
     // To improve performance, we can run these evaluations in parallel.
     const promises = candidates.map(async (candidate) => {
-      const { output } = await ai.generate({
-        model: 'googleai/gemini-2.5-flash',
-        prompt: `You are an AI-powered resume screening tool. Your task is to re-evaluate a candidate's resume against a NEW job description.
-
-        Provide a match score (0-100), identify missing skills, list strengths, and provide a summary of the resume in the context of the new job description. The summary should be a list of bullet points.
-
-        Resume:
-        ${candidate.resumeText}
-
-        New Job Description:
-        ${jobDescription}
-        `,
-        output: {
-          schema: z.object({
-            matchScore: z.number().describe('A score indicating how well the resume matches the job description (0-100).'),
-            missingSkills: z.array(z.string()).describe('A list of skills missing from the resume that are required in the job description.'),
-            strengths: z.array(z.string()).describe('A list of strengths highlighted in the resume that align with the job description.'),
-            summary: z.array(z.string()).describe('A summary of the resume in relation to the job description, as a list of bullet points.'),
-          })
-        }
+      const newScreeningResult = await aiPoweredResumeScreening({
+        resumeText: candidate.resumeText,
+        jobDescription,
       });
 
-      if (!output) {
+      if (!newScreeningResult) {
         // If the AI fails for one candidate, return the original candidate data
         // so we don't lose them from the list.
         return candidate;
       }
-      
-      const newScreeningResult = output;
 
       return {
         ...candidate,
