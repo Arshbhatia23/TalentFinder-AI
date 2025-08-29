@@ -33,6 +33,16 @@ export async function screenResume(formData: FormData) {
     const resumeText = await getResumeText(resumeFile);
     const resumeName = resumeFile.name;
     
+    // Save the resume to MongoDB
+    const client = await clientPromise;
+    const db = client.db();
+    await db.collection(CollectionName.Resumes).insertOne({
+      name: resumeName,
+      resumeText,
+      fileName: resumeFile.name,
+      createdAt: new Date(),
+    });
+
     const screeningInput: AiPoweredResumeScreeningInput = { jobDescription, resumeText };
     const screeningResult = await aiPoweredResumeScreening(screeningInput);
     
@@ -67,16 +77,28 @@ export async function checkResumeHealth(formData: FormData) {
 export async function searchExistingCandidates(formData: FormData) {
   try {
     const jobDescription = formData.get('jobDescription') as string;
-    const candidatesJSON = formData.get('candidates') as string;
+    
+    const client = await clientPromise;
+    const db = client.db();
+    const resumeDocs = await db.collection(CollectionName.Resumes).find({}).toArray();
 
-    if (!jobDescription) {
-      return { success: false, error: 'Job description is required.' };
-    }
-    if (!candidatesJSON) {
-      return { success: false, error: 'No candidates to search.' };
+    if (resumeDocs.length === 0) {
+      return { success: true, data: [] };
     }
 
-    const candidates = JSON.parse(candidatesJSON) as Candidate[];
+    // Transform the documents from the DB into the Candidate shape the flow expects.
+    // The initial screeningResult can be empty as it will be re-calculated by the flow.
+    const candidates: Candidate[] = resumeDocs.map(doc => ({
+      id: doc._id.toString(),
+      name: doc.name,
+      resumeText: doc.resumeText,
+      screeningResult: {
+        matchScore: 0,
+        strengths: [],
+        missingSkills: [],
+        summary: [],
+      }
+    }));
     
     const result = await searchCandidates({
       jobDescription,

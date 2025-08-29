@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -53,21 +53,26 @@ export default function CandidateSearch({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [totalCandidates, setTotalCandidates] = useState(0);
 
+  // We don't need to fetch candidates here anymore as the action does it.
+  // This component will just trigger the search.
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       jobDescription: exampleJD,
     },
   });
-
+  
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setHasSearched(false);
 
     const formData = new FormData();
     formData.append('jobDescription', data.jobDescription);
-    formData.append('candidates', JSON.stringify(candidates));
+    // We no longer pass candidates from the client
+    // formData.append('candidates', JSON.stringify(candidates));
 
     const result = await searchExistingCandidates(formData);
     setIsLoading(false);
@@ -79,6 +84,7 @@ export default function CandidateSearch({
         description: `Found and ranked ${result.data.length} candidates.`,
       });
       onSearchResults(result.data);
+      setTotalCandidates(result.data.length);
     } else {
       toast({
         variant: 'destructive',
@@ -100,7 +106,7 @@ export default function CandidateSearch({
               Find Best Candidate
             </CardTitle>
             <CardDescription>
-              Search your existing talent pool against a new job description.
+              Search your entire talent pool against a new job description.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -125,7 +131,7 @@ export default function CandidateSearch({
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full bg-accent hover:bg-accent/90" disabled={isLoading || candidates.length === 0}>
+                <Button type="submit" className="w-full bg-accent hover:bg-accent/90" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -134,14 +140,14 @@ export default function CandidateSearch({
                   ) : (
                     <>
                       <Search className="mr-2 h-4 w-4" />
-                      Search {candidates.length} Candidates
+                      Search All Candidates
                     </>
                   )}
                 </Button>
-                {candidates.length === 0 && (
-                    <p className="text-xs text-center text-muted-foreground pt-2">
-                        You don't have any candidates yet. Go to "New Screening" to build your talent pool.
-                    </p>
+                {hasSearched && totalCandidates === 0 && (
+                  <p className="text-xs text-center text-muted-foreground pt-2">
+                    No candidates found in the database.
+                  </p>
                 )}
               </form>
             </Form>
@@ -168,7 +174,12 @@ export default function CandidateSearch({
                     />
                     {hasSearched && candidates.length === 0 && (
                         <div className="text-center py-12 text-muted-foreground">
-                            <p>No matching candidates found.</p>
+                            <p>No matching candidates found for this job description.</p>
+                        </div>
+                    )}
+                     {!hasSearched && candidates.length === 0 && (
+                        <div className="text-center py-12 text-muted-foreground">
+                            <p>Click "Search All Candidates" to begin.</p>
                         </div>
                     )}
                 </CardContent>

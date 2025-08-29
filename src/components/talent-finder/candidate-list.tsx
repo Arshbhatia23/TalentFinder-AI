@@ -31,12 +31,8 @@ export default function CandidateList({ candidates, onSelectCandidate, selectedC
   }, [filteredCandidates]);
 
   if (candidates.length === 0) {
-    return (
-        <div className="text-center py-12 text-muted-foreground">
-            <p>No candidates have been screened yet.</p>
-            <p className="text-sm">Use the form above to start building your talent pool.</p>
-        </div>
-    );
+    // This state is now handled in the parent CandidateSearch component
+    return null;
   }
 
   return (
@@ -44,7 +40,7 @@ export default function CandidateList({ candidates, onSelectCandidate, selectedC
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name, skill, experience..."
+          placeholder="Filter ranked candidates by name, skill..."
           className="pl-10"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
