@@ -14,15 +14,16 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, FileText, Briefcase, Loader2 } from 'lucide-react';
+import { Sparkles, FileText, Briefcase, Loader2, Upload } from 'lucide-react';
 import { screenResume } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Candidate } from '@/lib/types';
 
 const formSchema = z.object({
   jobDescription: z.string().min(50, 'Job description must be at least 50 characters.'),
-  resumeText: z.string().min(50, 'Resume text must be at least 50 characters.'),
+  resumeFile: z.instanceof(File).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,42 +52,27 @@ Qualifications:
 - Strong understanding of web performance and optimization techniques
 - Familiarity with modern front-end build pipelines and tools (e.g., Webpack, Babel, NPM)`;
 
-const exampleResume = `Jane Doe
-Senior Frontend Engineer
-(123) 456-7890 | jane.doe@email.com | linkedin.com/in/janedoe
-
-Summary
-Highly skilled Senior Frontend Engineer with over 7 years of experience in designing, developing, and deploying scalable and performant web applications. Expertise in React, TypeScript, and state management solutions like Redux. Passionate about creating intuitive user interfaces and writing clean, maintainable code.
-
-Experience
-Tech Solutions Inc. - Senior Frontend Engineer (2018 - Present)
-- Led the development of a new customer-facing dashboard using React and TypeScript, resulting in a 30% increase in user engagement.
-- Architected and implemented a reusable component library, reducing development time by 25%.
-- Mentored junior engineers and conducted code reviews to ensure high code quality.
-- Collaborated with backend teams to integrate with RESTful APIs.
-
-Web Innovators - Frontend Developer (2015 - 2018)
-- Developed responsive web applications using React and JavaScript (ES6+).
-- Worked in an Agile environment to deliver features on a regular basis.
-
-Skills
-- Programming Languages: JavaScript, TypeScript, HTML5, CSS3
-- Libraries & Frameworks: React, Redux, Next.js
-- Tools: Git, Webpack, Babel, Jest, Cypress`;
-
 export default function ScreeningForm({ onScreeningComplete, isLoading, setIsLoading }: ScreeningFormProps) {
   const { toast } = useToast();
+  const [fileName, setFileName] = useState('');
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       jobDescription: exampleJD,
-      resumeText: exampleResume,
     },
   });
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
-    const result = await screenResume(data);
+
+    const formData = new FormData();
+    formData.append('jobDescription', data.jobDescription);
+    if (data.resumeFile) {
+      formData.append('resumeFile', data.resumeFile);
+    }
+
+    const result = await screenResume(formData);
     setIsLoading(false);
 
     if (result.success && result.data) {
@@ -94,15 +80,20 @@ export default function ScreeningForm({ onScreeningComplete, isLoading, setIsLoa
         title: 'Screening Successful',
         description: 'Candidate analysis is ready.',
       });
-      const candidateName = data.resumeText.split('\n')[0].trim() || 'Unnamed Candidate';
       const newCandidate: Candidate = {
         id: new Date().toISOString(),
-        name: candidateName,
-        resumeText: data.resumeText,
-        screeningResult: result.data,
+        name: result.data.resumeName,
+        resumeText: result.data.resumeText,
+        screeningResult: {
+            matchScore: result.data.matchScore,
+            strengths: result.data.strengths,
+            missingSkills: result.data.missingSkills,
+            summary: result.data.summary,
+        },
       };
       onScreeningComplete(newCandidate);
-      form.reset({ jobDescription: data.jobDescription, resumeText: '' });
+      form.reset({ jobDescription: data.jobDescription, resumeFile: undefined });
+      setFileName('');
     } else {
       toast({
         variant: 'destructive',
@@ -120,7 +111,7 @@ export default function ScreeningForm({ onScreeningComplete, isLoading, setIsLoa
           New Screening
         </CardTitle>
         <CardDescription>
-          Enter a job description and resume to get an AI-powered analysis.
+          Enter a job description and upload a resume to get an AI-powered analysis.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -147,18 +138,41 @@ export default function ScreeningForm({ onScreeningComplete, isLoading, setIsLoa
             />
             <FormField
               control={form.control}
-              name="resumeText"
-              render={({ field }) => (
+              name="resumeFile"
+              render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                     <FileText className="h-4 w-4" /> Candidate Resume
                   </FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Paste the candidate's resume text here..."
-                      className="min-h-[200px] text-xs"
-                      {...field}
-                    />
+                    <div className="relative">
+                        <Input
+                            type="file"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            accept=".pdf,.docx"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                onChange(file);
+                                setFileName(file ? file.name : '');
+                            }}
+                            {...rest}
+                        />
+                        <div className="flex items-center justify-center w-full h-24 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50">
+                            <div className="text-center">
+                                <Upload className="mx-auto h-8 w-8 text-muted-foreground"/>
+                                {fileName ? (
+                                    <p className="mt-2 text-sm text-foreground">{fileName}</p>
+                                ) : (
+                                    <>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            <span className="font-semibold text-primary">Click to upload</span> or drag and drop
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">PDF or DOCX</p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
